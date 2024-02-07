@@ -69,18 +69,10 @@ const Chessboard = () => {
 
 	// Function to handle the click on the squares
 	const handleSquareClick = (row, col) => {
+		// If no piece is selected, select the piece if it's the player's turn
 		if (!selectedPiece) {
-			// If no piece is selected, check if the clicked square contains a piece
 			const piece = board[row][col];
 			if (piece && piece.color === playerTurn) {
-				// If the square contains a piece, select it
-				setSelectedPiece({
-					type: piece.type,
-					color: piece.color,
-					row,
-					col,
-				});
-
 				// Calculate valid moves for the selected piece
 				const { moves, captureMoves } = calculateValidMoves(
 					piece.type,
@@ -88,38 +80,59 @@ const Chessboard = () => {
 					row,
 					col
 				);
-				// Update the valid moves
-				setValidMoves(moves);
-				// Update the valid capture moves
-				setCaptureMoves(captureMoves);
-				console.log(captureMoves);
+				// Set the selected piece and its valid moves
+				setSelectedPiece({
+					type: piece.type,
+					color: piece.color,
+					row,
+					col,
+					moves: moves || [],
+					captureMoves: captureMoves || [],
+				});
+				// Set the valid moves and capture moves for the selected piece
+				setValidMoves(moves || []);
+				setCaptureMoves(captureMoves || []);
 			}
 		} else {
-			// If a piece is already selected, attempt to move it to the clicked square
-			const { type, color, row: selectedRow, col: selectedCol } = selectedPiece;
+			// If a piece is selected, move the piece if the square is a valid move
+			const {
+				type,
+				color,
+				row: fromRow,
+				col: fromCol,
+				moves,
+				captureMoves,
+			} = selectedPiece;
+			// Check if the selected square is a valid move
+			const isValidMove = moves.some(
+				(move) => move.row === row && move.col === col
+			);
+			const isValidCaptureMove = captureMoves.some(
+				(move) => move.row === row && move.col === col
+			);
 
-			// Validate the move
-			if (validateMove(type, color, selectedRow, selectedCol, row, col)) {
+			// If the selected square is a valid move, move the piece
+			if (isValidMove || isValidCaptureMove) {
 				const newBoard = [...board];
 				newBoard[row][col] = { type, color };
-				newBoard[selectedRow][selectedCol] = null;
+				newBoard[fromRow][fromCol] = null;
 
-				// Update the board
+				// Update board state with the new piece positions
 				setBoard(newBoard);
 				// Reset the selected piece
 				setSelectedPiece(null);
 				// Change the player's turn
 				setPlayerTurn(playerTurn === "white" ? "black" : "white");
-				// Clear the valid moves
+				// Reset valid moves and capture moves
 				setValidMoves([]);
-				// Clear the valid capture moves
 				setCaptureMoves([]);
 			} else {
 				console.log("Invalid move");
-				// If the move is invalid, reset the selected piece and valid moves
+
+				// Reset the selected piece
 				setSelectedPiece(null);
+				// Reset valid moves and capture moves
 				setValidMoves([]);
-				// Clear the valid capture moves
 				setCaptureMoves([]);
 			}
 		}
