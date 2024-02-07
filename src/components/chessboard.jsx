@@ -1,6 +1,7 @@
 import React from "react";
 import Piece from "./ChessPiece";
 import "./chessboard.css";
+import "./chesspiece.css";
 
 const Chessboard = () => {
 	//Max amount of squares in rows and columns
@@ -25,7 +26,7 @@ const Chessboard = () => {
 				<div
 					key={`${rowIndex}-${columnIndex}`}
 					className={`${
-						(rowIndex + columnIndex) % 2 === 0 ? "black" : "white"
+						(rowIndex + columnIndex) % 2 === 0 ? "dark" : "light"
 					} square`}
 				>
 					{piece && (

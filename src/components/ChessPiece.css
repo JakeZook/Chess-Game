@@ -6,9 +6,49 @@
 }
 
 .pawn.white {
-	/* background-image: url(../images/pawn-white.svg); */
+	background-image: url(../assets/Pawn-w.png);
 }
 
 .pawn.black {
-	/* background-image: url(../images/pawn-black.svg); */
+	background-image: url(../assets/Pawn-b.png);
+}
+
+.rook.white {
+	background-image: url(../assets/Rook-w.png);
+}
+
+.rook.black {
+	background-image: url(../assets/Rook-b.png);
+}
+
+.knight.white {
+	background-image: url(../assets/Knight-w.png);
+}
+
+.knight.black {
+	background-image: url(../assets/Knight-b.png);
+}
+
+.bishop.white {
+	background-image: url(../assets/Bishop-w.png);
+}
+
+.bishop.black {
+	background-image: url(../assets/Bishop-b.png);
+}
+
+.queen.white {
+	background-image: url(../assets/Queen-w.png);
+}
+
+.queen.black {
+	background-image: url(../assets/Queen-b.png);
+}
+
+.king.white {
+	background-image: url(../assets/King-w.png);
+}
+
+.king.black {
+	background-image: url(../assets/King-b.png);
 }
