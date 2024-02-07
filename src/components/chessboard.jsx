@@ -21,13 +21,16 @@ const Chessboard = () => {
 
 	const [selectedPiece, setSelectedPiece] = useState(null);
 
+	//Function to handle the click on the squares
 	const handleSquareClick = (row, col) => {
+		//If there is no selected piece, select the piece to blank square
 		if (!selectedPiece) {
 			const piece = board[row][col];
 			if (piece) {
 				setSelectedPiece({ type: piece, row, col });
 			}
 		} else {
+			//If there is a selected piece, move the piece to the selected square
 			const { type, row: selectedRow, col: selectedCol } = selectedPiece;
 			const newBoard = [...board];
 			newBoard[row][col] = type;
