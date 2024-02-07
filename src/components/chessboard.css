@@ -24,3 +24,17 @@ h2 {
 .dark {
 	background-color: #b58863;
 }
+
+.valid-move {
+	background-image: url(../assets/valid.png);
+	background-size: 25px 25px;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+.capture-move {
+	background-image: url(../assets/capture.png);
+	background-size: 23px 23px;
+	background-repeat: no-repeat;
+	background-position: center;
+}

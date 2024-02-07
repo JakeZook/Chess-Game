@@ -62,14 +62,16 @@ const Chessboard = () => {
 	const [selectedPiece, setSelectedPiece] = useState(null);
 	// State to store the player's turn, White goes first
 	const [playerTurn, setPlayerTurn] = useState("white");
+	// State to store the valid moves for the selected piece
+	const [validMoves, setValidMoves] = useState([]);
+	// State to store the valid capture moves for the selected piece
+	const [captureMoves, setCaptureMoves] = useState([]);
 
 	// Function to handle the click on the squares
 	const handleSquareClick = (row, col) => {
 		if (!selectedPiece) {
 			// If no piece is selected, check if the clicked square contains a piece
 			const piece = board[row][col];
-			console.log(piece);
-			console.log(playerTurn);
 			if (piece && piece.color === playerTurn) {
 				// If the square contains a piece, select it
 				setSelectedPiece({
@@ -78,6 +80,19 @@ const Chessboard = () => {
 					row,
 					col,
 				});
+
+				// Calculate valid moves for the selected piece
+				const { moves, captureMoves } = calculateValidMoves(
+					piece.type,
+					piece.color,
+					row,
+					col
+				);
+				// Update the valid moves
+				setValidMoves(moves);
+				// Update the valid capture moves
+				setCaptureMoves(captureMoves);
+				console.log(captureMoves);
 			}
 		} else {
 			// If a piece is already selected, attempt to move it to the clicked square
@@ -95,11 +110,273 @@ const Chessboard = () => {
 				setSelectedPiece(null);
 				// Change the player's turn
 				setPlayerTurn(playerTurn === "white" ? "black" : "white");
+				// Clear the valid moves
+				setValidMoves([]);
+				// Clear the valid capture moves
+				setCaptureMoves([]);
 			} else {
 				console.log("Invalid move");
+				// If the move is invalid, reset the selected piece and valid moves
 				setSelectedPiece(null);
+				setValidMoves([]);
+				// Clear the valid capture moves
+				setCaptureMoves([]);
 			}
 		}
+	};
+
+	// Function to calculate valid moves for a selected piece
+	const calculateValidMoves = (type, color, row, col) => {
+		// Array to store valid moves
+		const moves = [];
+		const captureMoves = [];
+
+		// Pawn movement logic
+		if (type === "pawn") {
+			const direction = color === "white" ? -1 : 1;
+			if (!board[row + direction][col]) {
+				moves.push({ row: row + direction, col });
+			}
+			// Can move two squares if it's the first move
+			if (
+				((color === "white" && row === 6) ||
+					(color === "black" && row === 1)) &&
+				!board[row + direction][col] &&
+				!board[row + 2 * direction][col]
+			) {
+				moves.push({ row: row + 2 * direction, col });
+			}
+			// Check diagonal squares for opponent pieces
+			if (
+				col > 0 &&
+				board[row + direction][col - 1] &&
+				board[row + direction][col - 1]?.color !== color
+			) {
+				captureMoves.push({ row: row + direction, col: col - 1 });
+			}
+			if (
+				col < maxSquares - 1 &&
+				board[row + direction][col + 1] &&
+				board[row + direction][col + 1]?.color !== color
+			) {
+				captureMoves.push({ row: row + direction, col: col + 1 });
+			}
+		}
+
+		// Rook movement logic
+		if (type === "rook") {
+			// Check upward direction for both valid moves and capture moves
+			for (let i = row - 1; i >= 0; i--) {
+				if (!board[i][col]) {
+					// If the square is empty, it's a valid move
+					moves.push({ row: i, col });
+				} else {
+					// If the square contains a piece
+					if (board[i][col].color !== color) {
+						// If the piece is of the opposite color, it's a capture move
+						captureMoves.push({ row: i, col });
+					}
+					break; // Stop checking further in this direction
+				}
+			}
+			// Check downward direction for both valid moves and capture moves
+			for (let i = row + 1; i < maxSquares; i++) {
+				if (!board[i][col]) {
+					moves.push({ row: i, col });
+				} else {
+					if (board[i][col].color !== color) {
+						captureMoves.push({ row: i, col });
+					}
+					break;
+				}
+			}
+			// Check left direction for both valid moves and capture moves
+			for (let j = col - 1; j >= 0; j--) {
+				if (!board[row][j]) {
+					moves.push({ row, col: j });
+				} else {
+					if (board[row][j].color !== color) {
+						captureMoves.push({ row, col: j });
+					}
+					break;
+				}
+			}
+			// Check right direction for both valid moves and capture moves
+			for (let j = col + 1; j < maxSquares; j++) {
+				if (!board[row][j]) {
+					moves.push({ row, col: j });
+				} else {
+					if (board[row][j].color !== color) {
+						captureMoves.push({ row, col: j });
+					}
+					break;
+				}
+			}
+		}
+
+		// Knight movement logic
+		if (type === "knight") {
+			const knightMoves = [
+				{ row: row - 2, col: col - 1 },
+				{ row: row - 2, col: col + 1 },
+				{ row: row - 1, col: col - 2 },
+				{ row: row - 1, col: col + 2 },
+				{ row: row + 1, col: col - 2 },
+				{ row: row + 1, col: col + 2 },
+				{ row: row + 2, col: col - 1 },
+				{ row: row + 2, col: col + 1 },
+			];
+			knightMoves.forEach((move) => {
+				const { row: toRow, col: toCol } = move;
+				if (
+					toRow >= 0 &&
+					toRow < maxSquares &&
+					toCol >= 0 &&
+					toCol < maxSquares
+				) {
+					if (!board[toRow][toCol]) {
+						moves.push(move); // Add the move to the valid moves array if the square is empty
+					} else if (board[toRow][toCol].color !== color) {
+						captureMoves.push(move); // Add to captureMoves only if there's an opponent's piece
+					}
+				}
+			});
+		}
+
+		// Bishop movement logic
+		if (type === "bishop") {
+			// Check diagonal squares in all four directions
+			const directions = [
+				{ rowDir: -1, colDir: -1 }, // Up-Left
+				{ rowDir: -1, colDir: 1 }, // Up-Right
+				{ rowDir: 1, colDir: -1 }, // Down-Left
+				{ rowDir: 1, colDir: 1 }, // Down-Right
+			];
+			directions.forEach(({ rowDir, colDir }) => {
+				let i = 1;
+				while (true) {
+					const checkRow = row + i * rowDir;
+					const checkCol = col + i * colDir;
+					if (
+						checkRow < 0 ||
+						checkRow >= maxSquares ||
+						checkCol < 0 ||
+						checkCol >= maxSquares
+					) {
+						break; // If outside the board, stop checking in this direction
+					}
+					if (!board[checkRow][checkCol]) {
+						moves.push({ row: checkRow, col: checkCol }); // Add to moves if the square is empty
+					} else {
+						if (board[checkRow][checkCol].color !== color) {
+							captureMoves.push({ row: checkRow, col: checkCol }); // Add to captureMoves if it's an opponent's piece
+						}
+						break; // Stop checking further in this direction if a piece is encountered
+					}
+					i++;
+				}
+			});
+		}
+
+		// Queen movement logic (combination of rook and bishop)
+		if (type === "queen") {
+			// Rook-like movement
+			const rookDirections = [
+				{ rowDir: -1, colDir: 0 }, // Up
+				{ rowDir: 1, colDir: 0 }, // Down
+				{ rowDir: 0, colDir: -1 }, // Left
+				{ rowDir: 0, colDir: 1 }, // Right
+			];
+			rookDirections.forEach(({ rowDir, colDir }) => {
+				let i = 1;
+				while (true) {
+					const checkRow = row + i * rowDir;
+					const checkCol = col + i * colDir;
+					if (
+						checkRow < 0 ||
+						checkRow >= maxSquares ||
+						checkCol < 0 ||
+						checkCol >= maxSquares
+					) {
+						break; // If outside the board, stop checking in this direction
+					}
+					if (!board[checkRow][checkCol]) {
+						moves.push({ row: checkRow, col: checkCol }); // Add to moves if the square is empty
+					} else {
+						if (board[checkRow][checkCol].color !== color) {
+							captureMoves.push({ row: checkRow, col: checkCol }); // Add to captureMoves if it's an opponent's piece
+						}
+						break; // Stop checking further in this direction if a piece is encountered
+					}
+					i++;
+				}
+			});
+
+			// Bishop-like movement
+			const bishopDirections = [
+				{ rowDir: -1, colDir: -1 }, // Up-Left
+				{ rowDir: -1, colDir: 1 }, // Up-Right
+				{ rowDir: 1, colDir: -1 }, // Down-Left
+				{ rowDir: 1, colDir: 1 }, // Down-Right
+			];
+			bishopDirections.forEach(({ rowDir, colDir }) => {
+				let i = 1;
+				while (true) {
+					const checkRow = row + i * rowDir;
+					const checkCol = col + i * colDir;
+					if (
+						checkRow < 0 ||
+						checkRow >= maxSquares ||
+						checkCol < 0 ||
+						checkCol >= maxSquares
+					) {
+						break; // If outside the board, stop checking in this direction
+					}
+					if (!board[checkRow][checkCol]) {
+						moves.push({ row: checkRow, col: checkCol }); // Add to moves if the square is empty
+					} else {
+						if (board[checkRow][checkCol].color !== color) {
+							captureMoves.push({ row: checkRow, col: checkCol }); // Add to captureMoves if it's an opponent's piece
+						}
+						break; // Stop checking further in this direction if a piece is encountered
+					}
+					i++;
+				}
+			});
+		}
+
+		// King movement logic
+		if (type === "king") {
+			const kingMoves = [
+				{ row: row - 1, col: col - 1 }, // Up-Left
+				{ row: row - 1, col }, // Up
+				{ row: row - 1, col: col + 1 }, // Up-Right
+				{ row, col: col - 1 }, // Left
+				{ row, col: col + 1 }, // Right
+				{ row: row + 1, col: col - 1 }, // Down-Left
+				{ row: row + 1, col }, // Down
+				{ row: row + 1, col: col + 1 }, // Down-Right
+			];
+			kingMoves.forEach((move) => {
+				const { row: moveRow, col: moveCol } = move;
+				if (
+					moveRow >= 0 &&
+					moveRow < maxSquares &&
+					moveCol >= 0 &&
+					moveCol < maxSquares
+				) {
+					if (!board[moveRow][moveCol]) {
+						moves.push(move); // Add to moves if the square is empty
+					} else {
+						if (board[moveRow][moveCol].color !== color) {
+							captureMoves.push(move); // Add to captureMoves if it's an opponent's piece
+						}
+					}
+				}
+			});
+		}
+
+		return { moves, captureMoves };
 	};
 
 	// Function to validate the move of a piece
@@ -292,6 +569,18 @@ const Chessboard = () => {
 							key={`${rowIndex}-${colIndex}`}
 							className={`square ${
 								(rowIndex + colIndex) % 2 === 0 ? "light" : "dark"
+							} ${
+								validMoves.some(
+									(move) => move.row === rowIndex && move.col === colIndex
+								)
+									? "valid-move"
+									: ""
+							} ${
+								captureMoves.some(
+									(move) => move.row === rowIndex && move.col === colIndex
+								)
+									? "capture-move"
+									: ""
 							}`}
 							onClick={() => handleSquareClick(rowIndex, colIndex)}
 						>
