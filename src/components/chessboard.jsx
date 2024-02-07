@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Piece from "./ChessPiece";
 import "./chessboard.css";
 import "./chesspiece.css";
@@ -8,7 +8,7 @@ const Chessboard = () => {
 	const maxSquares = 8;
 
 	//Array to store the pieces and squares at the start of game
-	const InitialBoard = [
+	const [board, setBoard] = useState([
 		["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
 		["pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn"],
 		Array(maxSquares).fill(null),
@@ -17,27 +17,45 @@ const Chessboard = () => {
 		Array(maxSquares).fill(null),
 		["pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn", "pawn"],
 		["rook", "knight", "bishop", "queen", "king", "bishop", "knight", "rook"],
-	];
+	]);
 
-	//Map the initial board to create the squares and pieces
-	const squares = InitialBoard.map((row, rowIndex) =>
-		row.map((piece, columnIndex) => {
-			return (
-				<div
-					key={`${rowIndex}-${columnIndex}`}
-					className={`${
-						(rowIndex + columnIndex) % 2 === 0 ? "dark" : "light"
-					} square`}
-				>
-					{piece && (
-						<Piece type={piece} color={rowIndex < 2 ? "black" : "white"} />
-					)}
-				</div>
-			);
-		})
+	const [selectedPiece, setSelectedPiece] = useState(null);
+
+	const handleSquareClick = (row, col) => {
+		if (!selectedPiece) {
+			const piece = board[row][col];
+			if (piece) {
+				setSelectedPiece({ type: piece, row, col });
+			}
+		} else {
+			const { type, row: selectedRow, col: selectedCol } = selectedPiece;
+			const newBoard = [...board];
+			newBoard[row][col] = type;
+			newBoard[selectedRow][selectedCol] = null;
+			setBoard(newBoard);
+			setSelectedPiece(null);
+		}
+	};
+
+	return (
+		<div className="chessboard">
+			{board.map((row, rowIndex) =>
+				row.map((piece, colIndex) => (
+					<div
+						key={`${rowIndex}-${colIndex}`}
+						className={`square ${
+							(rowIndex + colIndex) % 2 === 0 ? "light" : "dark"
+						}`}
+						onClick={() => handleSquareClick(rowIndex, colIndex)}
+					>
+						{piece && (
+							<Piece type={piece} color={rowIndex < 2 ? "black" : "white"} />
+						)}
+					</div>
+				))
+			)}
+		</div>
 	);
-
-	return <div className="chessboard">{squares}</div>;
 };
 
 export default Chessboard;
