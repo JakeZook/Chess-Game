@@ -5,8 +5,8 @@
 }
 
 h2 {
+	color: #e5d542;
 	text-align: center;
-	margin: 0;
 }
 
 .square {
@@ -37,4 +37,17 @@ h2 {
 	background-size: 23px 23px;
 	background-repeat: no-repeat;
 	background-position: center;
+}
+
+.invalid {
+	color: #ff0000 !important;
+	text-align: center;
+}
+
+.white-turn {
+	color: #ffffff !important;
+}
+
+.black-turn {
+	color: #000000 !important;
 }
