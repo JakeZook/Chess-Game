@@ -60,14 +60,17 @@ const Chessboard = () => {
 
 	// State to store the selected piece
 	const [selectedPiece, setSelectedPiece] = useState(null);
+	// State to store the player's turn, White goes first
+	const [playerTurn, setPlayerTurn] = useState("white");
 
 	// Function to handle the click on the squares
 	const handleSquareClick = (row, col) => {
 		if (!selectedPiece) {
 			// If no piece is selected, check if the clicked square contains a piece
 			const piece = board[row][col];
-			console.log(`${piece.color} ${piece.type} - row: ${row} col: ${col}`);
-			if (piece) {
+			console.log(piece);
+			console.log(playerTurn);
+			if (piece && piece.color === playerTurn) {
 				// If the square contains a piece, select it
 				setSelectedPiece({
 					type: piece.type,
@@ -79,13 +82,19 @@ const Chessboard = () => {
 		} else {
 			// If a piece is already selected, attempt to move it to the clicked square
 			const { type, color, row: selectedRow, col: selectedCol } = selectedPiece;
+
 			// Validate the move
 			if (validateMove(type, color, selectedRow, selectedCol, row, col)) {
 				const newBoard = [...board];
 				newBoard[row][col] = { type, color };
 				newBoard[selectedRow][selectedCol] = null;
+
+				// Update the board
 				setBoard(newBoard);
+				// Reset the selected piece
 				setSelectedPiece(null);
+				// Change the player's turn
+				setPlayerTurn(playerTurn === "white" ? "black" : "white");
 			} else {
 				console.log("Invalid move");
 				setSelectedPiece(null);
@@ -267,9 +276,13 @@ const Chessboard = () => {
 	// Render the chessboard
 	return (
 		<div>
+			<h2>{playerTurn.charAt(0).toUpperCase() + playerTurn.slice(1)}'s turn</h2>
 			<h2>
 				{selectedPiece
-					? `Selected Piece: ${selectedPiece.color} ${selectedPiece.type}`
+					? `Selected Piece: ${
+							selectedPiece.type.charAt(0).toUpperCase() +
+							selectedPiece.type.slice(1)
+					  }`
 					: "No piece selected"}
 			</h2>
 			<div className="chessboard">
