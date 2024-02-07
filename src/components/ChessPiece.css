@@ -1,0 +1,14 @@
+.piece {
+	width: 100%;
+	height: 100%;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.pawn.white {
+	/* background-image: url(../images/pawn-white.svg); */
+}
+
+.pawn.black {
+	/* background-image: url(../images/pawn-black.svg); */
+}
