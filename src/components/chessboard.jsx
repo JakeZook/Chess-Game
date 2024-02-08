@@ -446,7 +446,6 @@ const Chessboard = () => {
 					))
 				)}
 			</div>
-			{/* <h3 className="invalid">{isInvalid ? "Invalid Move!" : ""}</h3> */}
 		</div>
 	);
 };
