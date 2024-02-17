@@ -67,6 +67,8 @@ const Chessboard = () => {
 	const [captureMoves, setCaptureMoves] = useState([]);
 	// State to store if the move is invalid
 	const [isInvalid, setIsInvalid] = useState(false);
+	// State to store the captured piece text
+	const [capturedPieceText, setCapturedPieceText] = useState("");
 
 	// Function to handle the click on the squares
 	const handleSquareClick = (row, col) => {
@@ -115,9 +117,22 @@ const Chessboard = () => {
 
 			// If the selected square is a valid move, move the piece
 			if (isValidMove || isValidCaptureMove) {
+				// Check if the move is a capture move
+				if (captureMoves.some((move) => move.row === row && move.col === col)) {
+					const capturedPiece = board[row][col].type;
+					pieceCaptured(playerTurn, capturedPiece);
+				}
+
+				// Create a new board array with the moved piece
 				const newBoard = [...board];
 				newBoard[row][col] = { type, color };
 				newBoard[fromRow][fromCol] = null;
+				// Check for check or checkmate
+				const inCheck = testCheck(playerTurn === "white" ? "black" : "white");
+
+				if (inCheck) {
+					console.log("Check!");
+				}
 
 				// Update board state with the new piece positions
 				setBoard(newBoard);
@@ -396,6 +411,59 @@ const Chessboard = () => {
 		return { moves, captureMoves };
 	};
 
+	// Function to display the piece captured
+	const pieceCaptured = (turn, piece) => {
+		// Set the captured piece text
+		setCapturedPieceText(
+			`${turn.charAt(0).toUpperCase() + turn.slice(1)} captured a ${piece}`
+		);
+
+		// Hide the captured piece text after 2 seconds
+		setTimeout(() => {
+			setCapturedPieceText("");
+		}, 2000);
+	};
+
+	// Function to test for check
+	const testCheck = (opponentColor) => {
+		// Find the position of the opponent's king
+		let opponentKingPosition = { row: -1, col: -1 };
+		board.forEach((row, rowIndex) => {
+			row.forEach((piece, colIndex) => {
+				if (piece && piece.type === "king" && piece.color === opponentColor) {
+					opponentKingPosition = { row: rowIndex, col: colIndex };
+				}
+			});
+		});
+
+		// Iterate through the board to find if any of the current player's pieces threaten the opponent's king
+		for (let i = 0; i < maxSquares; i++) {
+			for (let j = 0; j < maxSquares; j++) {
+				const piece = board[i][j];
+				if (piece && piece.color === playerTurn) {
+					// Calculate valid moves for the current player's piece
+					const { captureMoves } = calculateValidMoves(
+						piece.type,
+						piece.color,
+						i,
+						j
+					);
+					// Check if any capture move threatens the opponent's king
+					if (
+						captureMoves.some(
+							(move) =>
+								move.row === opponentKingPosition.row &&
+								move.col === opponentKingPosition.col
+						)
+					) {
+						return true; // Opponent's king is in check
+					}
+				}
+			}
+		}
+		return false; // Opponent's king is not in check
+	};
+
 	// Function to determine the color of each piece based on its row
 	const getPieceColor = (rowIndex) => {
 		return rowIndex < maxSquares / 2 ? "black" : "white";
@@ -446,6 +514,7 @@ const Chessboard = () => {
 					))
 				)}
 			</div>
+			<h2>{capturedPieceText}</h2>
 		</div>
 	);
 };
